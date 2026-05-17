@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Frans Uitspraak">
-<title>Frans Uitspraak</title>
+<meta name="apple-mobile-web-app-title" content="Taal Uitspraak">
+<title>Taal Uitspraak</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -240,14 +240,58 @@
   </div>
 </div>
 
+<!-- SCREEN: Language selection -->
+<div id="screen-lang" class="screen">
+  <div style="padding: 0 1rem 2rem;">
+    <div class="api-hero">
+      <div class="icon-wrap" style="background:#e8f0fe"><i class="ti ti-world" style="color:#3d6fd4"></i></div>
+      <h2>Kies je taal</h2>
+      <p>Welke taal wil je oefenen?</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn" style="justify-content:flex-start;gap:14px;padding:16px" onclick="selectLang('fr','Frans','fr-FR','🇫🇷')">
+        <span style="font-size:26px">🇫🇷</span>
+        <div style="text-align:left">
+          <div style="font-weight:500">Frans</div>
+          <div style="font-size:12px;color:var(--text-sec)">Français</div>
+        </div>
+      </button>
+      <button class="btn" style="justify-content:flex-start;gap:14px;padding:16px" onclick="selectLang('de','Duits','de-DE','🇩🇪')">
+        <span style="font-size:26px">🇩🇪</span>
+        <div style="text-align:left">
+          <div style="font-weight:500">Duits</div>
+          <div style="font-size:12px;color:var(--text-sec)">Deutsch</div>
+        </div>
+      </button>
+      <button class="btn" style="justify-content:flex-start;gap:14px;padding:16px" onclick="selectLang('en','Engels','en-GB','🇬🇧')">
+        <span style="font-size:26px">🇬🇧</span>
+        <div style="text-align:left">
+          <div style="font-weight:500">Engels</div>
+          <div style="font-size:12px;color:var(--text-sec)">English</div>
+        </div>
+      </button>
+      <button class="btn" style="justify-content:flex-start;gap:14px;padding:16px" onclick="selectLang('es','Spaans','es-ES','🇪🇸')">
+        <span style="font-size:26px">🇪🇸</span>
+        <div style="text-align:left">
+          <div style="font-weight:500">Spaans</div>
+          <div style="font-size:12px;color:var(--text-sec)">Español</div>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- SCREEN: Scan -->
 <div id="screen-scan" class="screen">
   <div class="topbar">
     <div>
-      <div class="app-title">Prononciation</div>
-      <div class="app-sub">Frans uitspraakoefening</div>
+      <div class="app-title" id="scan-title">Uitspraak</div>
+      <div class="app-sub" id="scan-sub">Kies een taal</div>
     </div>
-    <button class="settings-btn" onclick="showKey()" aria-label="Instellingen" style="font-size:14px;padding:6px 10px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);color:var(--text-sec)"><i class="ti ti-key" style="font-size:15px;vertical-align:-2px"></i> Sleutel</button>
+    <div style="display:flex;gap:6px">
+      <button class="settings-btn" onclick="showScreen('screen-lang')" aria-label="Taal wijzigen" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);color:var(--text-sec)"><i class="ti ti-world" style="font-size:15px;vertical-align:-2px"></i> Taal</button>
+      <button class="settings-btn" onclick="showKey()" aria-label="Instellingen" style="font-size:13px;padding:6px 10px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);color:var(--text-sec)"><i class="ti ti-key" style="font-size:15px;vertical-align:-2px"></i> Sleutel</button>
+    </div>
   </div>
 
   <div style="padding: 0 0 1rem;">
@@ -283,7 +327,7 @@
 <div id="screen-practice" class="screen">
   <div class="topbar">
     <div>
-      <div class="app-title">Oefenen</div>
+      <div class="app-title" id="prac-title">Oefenen</div>
       <div class="app-sub" id="prac-sub">Zin 1 van 1</div>
     </div>
     <button class="settings-btn" onclick="showScan()" aria-label="Terug naar scan"><i class="ti ti-camera"></i></button>
@@ -329,6 +373,7 @@ let currentIdx = 0;
 let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
+let currentLang = { code: 'fr', name: 'Frans', voice: 'fr-FR', flag: '🇫🇷' };
 
 function getKey() { return localStorage.getItem('anthropic_key') || ''; }
 
@@ -368,9 +413,29 @@ window.onload = () => {
   const key = getKey();
   if (key) {
     document.getElementById('api-key-input').value = key;
-    showScan();
+    const savedLang = localStorage.getItem('selected_lang');
+    if (savedLang) {
+      const l = JSON.parse(savedLang);
+      currentLang = l;
+      updateScanHeader();
+      showScan();
+    } else {
+      showScreen('screen-lang');
+    }
   }
 };
+
+function selectLang(code, name, voice, flag) {
+  currentLang = { code, name, voice, flag };
+  localStorage.setItem('selected_lang', JSON.stringify(currentLang));
+  updateScanHeader();
+  showScan();
+}
+
+function updateScanHeader() {
+  document.getElementById('scan-title').textContent = currentLang.flag + ' ' + currentLang.name;
+  document.getElementById('scan-sub').textContent = currentLang.name + ' uitspraakoefening';
+}
 
 function handleImage(e) {
   const file = e.target.files[0];
@@ -407,7 +472,7 @@ async function extractSentences(base64, mediaType) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en Franse zinnen of woorden. Haal alle paren eruit en voeg fonetische uitspraak toe in gewone Nederlandse klanken (geen IPA-tekens), geschikt voor een 12-jarige beginner. Bijv. "bong-zhoor" voor bonjour.\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse zin", "fr": "Franse zin", "fonetisch": "uitspraak in Nederlandse klanken"}\n]\n\nAls er geen duidelijke paren zijn: []` }
+            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en ${currentLang.name} zinnen of woorden. Haal alle paren eruit en voeg fonetische uitspraak toe in gewone Nederlandse klanken (geen IPA-tekens), geschikt voor een 12-jarige beginner.\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse zin", "fr": "Franse zin", "fonetisch": "uitspraak in Nederlandse klanken"}\n]\n\nAls er geen duidelijke paren zijn: []` }
           ]
         }]
       })
@@ -464,6 +529,7 @@ function renderPractice() {
   document.getElementById('prac-fr').textContent = s.fr;
   document.getElementById('prac-phonetic').textContent = s.fonetisch ? '[ ' + s.fonetisch + ' ]' : '';
   document.getElementById('prac-sub').textContent = `Zin ${currentIdx + 1} van ${sentences.length}`;
+  if (document.getElementById('prac-title')) document.getElementById('prac-title').textContent = currentLang.flag + ' ' + currentLang.name;
   document.getElementById('feedback-area').style.display = 'none';
   document.getElementById('feedback-area').innerHTML = '';
   document.getElementById('rec-status').textContent = '';
@@ -476,7 +542,7 @@ function renderPractice() {
 
 function speakCurrent(rate) {
   const utt = new SpeechSynthesisUtterance(sentences[currentIdx].fr);
-  utt.lang = 'fr-FR';
+  utt.lang = currentLang.voice;
   utt.rate = rate || 1;
   window.speechSynthesis.speak(utt);
 }
@@ -530,7 +596,7 @@ async function processAudio() {
           role: "user",
           content: [{
             type: "text",
-            text: `Je bent een Franse uitspraakcoach voor een absolute beginner van 12 jaar (1e klas VWO) met Nederlands als moedertaal. Gebruik eenvoudige, bemoedigende taal. Geen vakjargon.\n\nDe leerling heeft geprobeerd deze Franse zin uit te spreken:\n"${s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting. Let op typische fouten: nasaalklanken, de Franse r, stille letters, liaison, klinkerlengte.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
+            text: `Je bent een ${currentLang.name} uitspraakcoach voor een absolute beginner van 12 jaar (1e klas VWO) met Nederlands als moedertaal. Gebruik eenvoudige, bemoedigende taal. Geen vakjargon.\n\nDe leerling heeft geprobeerd deze Franse zin uit te spreken:\n"${s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting. Let op typische fouten: nasaalklanken, de Franse r, stille letters, liaison, klinkerlengte.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
           }]
         }]
       })
