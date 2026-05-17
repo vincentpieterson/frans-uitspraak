@@ -1,15 +1,16 @@
-<!DOCTYPE html>
-<!-- saved from url=(0068)file:///C:/Users/VincentPietersonAVer/Downloads/frans-uitspraak.html -->
-<html lang="nl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Frans Uitspraak">
 <title>Frans Uitspraak</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./Frans Uitspraak_files/css2" rel="stylesheet">
-<link rel="stylesheet" href="./Frans Uitspraak_files/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   :root {
     --bg: #faf9f6;
@@ -221,7 +222,7 @@
 <body>
 
 <!-- SCREEN: API Key -->
-<div id="screen-key" class="screen">
+<div id="screen-key" class="screen active">
   <div class="api-hero">
     <div class="icon-wrap"><i class="ti ti-key"></i></div>
     <h2>Frans Uitspraak</h2>
@@ -233,24 +234,24 @@
       <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" autocorrect="off" spellcheck="false">
       <button class="toggle-vis" onclick="toggleVis()" aria-label="Toon/verberg sleutel"><i class="ti ti-eye" id="eye-icon"></i></button>
     </div>
-    <p class="hint">Sleutel wordt alleen op jouw telefoon bewaard.<br>Haal hem op via <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></p>
+    <p class="hint">Sleutel wordt alleen op jouw telefoon bewaard.<br>Haal hem op via <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
     <button class="btn primary" onclick="saveKey()"><i class="ti ti-check"></i> Opslaan en doorgaan</button>
     <div id="key-error" style="font-size:13px;color:var(--danger);text-align:center;min-height:18px;margin-top:4px"></div>
   </div>
 </div>
 
 <!-- SCREEN: Scan -->
-<div id="screen-scan" class="screen active">
+<div id="screen-scan" class="screen">
   <div class="topbar">
     <div>
       <div class="app-title">Prononciation</div>
       <div class="app-sub">Frans uitspraakoefening</div>
     </div>
-    <button class="settings-btn" onclick="showKey()" aria-label="Instellingen"><i class="ti ti-settings"></i></button>
+    <button class="settings-btn" onclick="showKey()" aria-label="Instellingen" style="font-size:14px;padding:6px 10px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);color:var(--text-sec)"><i class="ti ti-key" style="font-size:15px;vertical-align:-2px"></i> Sleutel</button>
   </div>
 
   <div style="padding: 0 0 1rem;">
-    <div class="scan-zone" onclick="document.getElementById(&#39;file-input&#39;).click()">
+    <div class="scan-zone" onclick="document.getElementById('file-input').click()">
       <i class="ti ti-camera-plus"></i>
       <h3>Foto van je woordenlijst</h3>
       <p>Maak een foto of kies uit je galerij</p>
@@ -265,7 +266,7 @@
       <div class="card">
         <div class="found-header">
           <span id="found-label">Gevonden zinnen</span>
-          <button class="btn sm" onclick="document.getElementById(&#39;file-input&#39;).click()">
+          <button class="btn sm" onclick="document.getElementById('file-input').click()">
             <i class="ti ti-refresh" style="font-size:13px"></i> Opnieuw
           </button>
         </div>
@@ -570,6 +571,5 @@ function showFeedback(r) {
 function nextSentence() { currentIdx = (currentIdx + 1) % sentences.length; renderPractice(); }
 function prevSentence() { currentIdx = (currentIdx - 1 + sentences.length) % sentences.length; renderPractice(); }
 </script>
-
-
-</body></html>
+</body>
+</html>
