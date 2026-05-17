@@ -295,9 +295,15 @@
     <div class="card practice-card">
       <div class="prac-nl" id="prac-nl"></div>
       <div class="prac-fr" id="prac-fr"></div>
-      <button class="listen-btn" onclick="speakCurrent()">
-        <i class="ti ti-volume" style="font-size:15px"></i> Hoor het
-      </button>
+      <div id="prac-phonetic" style="font-size:14px;color:var(--text-sec);font-style:italic;margin-bottom:1rem;min-height:20px"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="listen-btn" onclick="speakCurrent(1)">
+          <i class="ti ti-volume" style="font-size:15px"></i> Normaal
+        </button>
+        <button class="listen-btn" onclick="speakCurrent(0.5)">
+          <i class="ti ti-volume" style="font-size:15px"></i> Langzaam
+        </button>
+      </div>
     </div>
 
     <div class="record-section">
@@ -401,7 +407,7 @@ async function extractSentences(base64, mediaType) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en Franse zinnen of woorden. Haal alle paren eruit.\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse zin", "fr": "Franse zin"}\n]\n\nAls er geen duidelijke paren zijn: []` }
+            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en Franse zinnen of woorden. Haal alle paren eruit en voeg fonetische uitspraak toe in gewone Nederlandse klanken (geen IPA-tekens), geschikt voor een 12-jarige beginner. Bijv. "bong-zhoor" voor bonjour.\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse zin", "fr": "Franse zin", "fonetisch": "uitspraak in Nederlandse klanken"}\n]\n\nAls er geen duidelijke paren zijn: []` }
           ]
         }]
       })
@@ -432,6 +438,7 @@ async function extractSentences(base64, mediaType) {
         <div>
           <div class="sentence-nl">${escHtml(s.nl)}</div>
           <div class="sentence-fr">${escHtml(s.fr)}</div>
+          ${s.fonetisch ? `<div style="font-size:12px;color:var(--text-ter);font-style:italic">${escHtml(s.fonetisch)}</div>` : ''}
         </div>
       </div>`).join('');
     document.getElementById('extracted-list').style.display = 'block';
@@ -455,6 +462,7 @@ function renderPractice() {
   const s = sentences[currentIdx];
   document.getElementById('prac-nl').textContent = s.nl;
   document.getElementById('prac-fr').textContent = s.fr;
+  document.getElementById('prac-phonetic').textContent = s.fonetisch ? '[ ' + s.fonetisch + ' ]' : '';
   document.getElementById('prac-sub').textContent = `Zin ${currentIdx + 1} van ${sentences.length}`;
   document.getElementById('feedback-area').style.display = 'none';
   document.getElementById('feedback-area').innerHTML = '';
@@ -466,9 +474,10 @@ function renderPractice() {
   ).join('');
 }
 
-function speakCurrent() {
+function speakCurrent(rate) {
   const utt = new SpeechSynthesisUtterance(sentences[currentIdx].fr);
-  utt.lang = 'fr-FR'; utt.rate = 0.82;
+  utt.lang = 'fr-FR';
+  utt.rate = rate || 1;
   window.speechSynthesis.speak(utt);
 }
 
@@ -521,7 +530,7 @@ async function processAudio() {
           role: "user",
           content: [{
             type: "text",
-            text: `Je bent een Franse uitspraakcoach voor een gevorderd beginner met Nederlands als moedertaal.\n\nDe leerling heeft geprobeerd deze Franse zin uit te spreken:\n"${s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting. Let op typische fouten: nasaalklanken, de Franse r, stille letters, liaison, klinkerlengte.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
+            text: `Je bent een Franse uitspraakcoach voor een absolute beginner van 12 jaar (1e klas VWO) met Nederlands als moedertaal. Gebruik eenvoudige, bemoedigende taal. Geen vakjargon.\n\nDe leerling heeft geprobeerd deze Franse zin uit te spreken:\n"${s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting. Let op typische fouten: nasaalklanken, de Franse r, stille letters, liaison, klinkerlengte.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
           }]
         }]
       })
