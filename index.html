@@ -472,7 +472,7 @@ async function extractSentences(base64, mediaType) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en ${currentLang.name} zinnen of woorden. Haal alle paren eruit en voeg fonetische uitspraak toe in gewone Nederlandse klanken (geen IPA-tekens), geschikt voor een 12-jarige beginner.\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse zin", "fr": "Franse zin", "fonetisch": "uitspraak in Nederlandse klanken"}\n]\n\nAls er geen duidelijke paren zijn: []` }
+            { type: "text", text: `Dit is een foto van een taallijst met Nederlandse en ${currentLang.name} zinnen of woorden.\n\nJouw taak:\n1. Zoek alle paren van een Nederlandse zin/woord en een ${currentLang.name} zin/woord\n2. Voeg fonetische uitspraak toe in gewone Nederlandse klanken (geen IPA), geschikt voor een 12-jarige\n\nAntwoord ALLEEN als JSON array, geen markdown, geen uitleg:\n[\n  {"nl": "Nederlandse tekst", "doel": "${currentLang.name} tekst", "fonetisch": "uitspraak in Nederlandse klanken"}\n]\n\nAls er geen duidelijke paren zijn: []` }
           ]
         }]
       })
@@ -494,7 +494,7 @@ async function extractSentences(base64, mediaType) {
       return;
     }
 
-    sentences = parsed.filter(s => s.nl && s.fr);
+    sentences = parsed.filter(s => s.nl && (s.doel || s.fr)).map(s => ({...s, doel: s.doel || s.fr}));
     status.innerHTML = '';
     document.getElementById('found-label').textContent = `${sentences.length} zin${sentences.length !== 1 ? 'nen' : ''} gevonden`;
     document.getElementById('sentence-list').innerHTML = sentences.map((s, i) => `
@@ -502,7 +502,7 @@ async function extractSentences(base64, mediaType) {
         <span class="sentence-num">${i + 1}</span>
         <div>
           <div class="sentence-nl">${escHtml(s.nl)}</div>
-          <div class="sentence-fr">${escHtml(s.fr)}</div>
+          <div class="sentence-fr">${escHtml(s.doel || s.fr)}</div>
           ${s.fonetisch ? `<div style="font-size:12px;color:var(--text-ter);font-style:italic">${escHtml(s.fonetisch)}</div>` : ''}
         </div>
       </div>`).join('');
@@ -526,7 +526,7 @@ function startPractice() {
 function renderPractice() {
   const s = sentences[currentIdx];
   document.getElementById('prac-nl').textContent = s.nl;
-  document.getElementById('prac-fr').textContent = s.fr;
+  document.getElementById('prac-fr').textContent = s.doel || s.fr;
   document.getElementById('prac-phonetic').textContent = s.fonetisch ? '[ ' + s.fonetisch + ' ]' : '';
   document.getElementById('prac-sub').textContent = `Zin ${currentIdx + 1} van ${sentences.length}`;
   if (document.getElementById('prac-title')) document.getElementById('prac-title').textContent = currentLang.flag + ' ' + currentLang.name;
@@ -541,7 +541,7 @@ function renderPractice() {
 }
 
 function speakCurrent(rate) {
-  const utt = new SpeechSynthesisUtterance(sentences[currentIdx].fr);
+  const utt = new SpeechSynthesisUtterance(sentences[currentIdx].doel || sentences[currentIdx].fr);
   utt.lang = currentLang.voice;
   utt.rate = rate || 1;
   window.speechSynthesis.speak(utt);
@@ -596,7 +596,7 @@ async function processAudio() {
           role: "user",
           content: [{
             type: "text",
-            text: `Je bent een ${currentLang.name} uitspraakcoach voor een absolute beginner van 12 jaar (1e klas VWO) met Nederlands als moedertaal. Gebruik eenvoudige, bemoedigende taal. Geen vakjargon.\n\nDe leerling heeft geprobeerd deze Franse zin uit te spreken:\n"${s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting. Let op typische fouten: nasaalklanken, de Franse r, stille letters, liaison, klinkerlengte.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
+            text: `Je bent een ${currentLang.name} uitspraakcoach voor een absolute beginner van 12 jaar (1e klas VWO) met Nederlands als moedertaal. Gebruik eenvoudige, bemoedigende taal. Geen vakjargon.\n\nDe leerling heeft geprobeerd deze ${currentLang.name} zin uit te spreken:\n"${s.doel || s.fr}"\n(Nederlandse betekenis: "${s.nl}")\n\nSimuleer een grondige uitspraakmeting passend bij ${currentLang.name}.\n\nAntwoord ALLEEN als JSON (geen markdown):\n{\n  "score": <0-100>,\n  "titel": "<max 5 woorden>",\n  "feedback": "<2-3 zinnen: wat goed was en wat beter kan>",\n  "tip": "<één concrete oefentip>"\n}`
           }]
         }]
       })
